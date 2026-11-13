@@ -4,6 +4,14 @@ This prepares the hardware-tested PTM-1645 custom integration for a focused Home
 Assistant Core submission targeting Bronze. It does not change the HACS release.
 The quality tier is proposed for review, not awarded by this preparation.
 
+## Read without code diffs
+
+- [Read the proposed documentation](docs-preview.md): a formatted reading copy,
+  with Home Assistant's shared templates expanded.
+- [Read the Core PR description](core-pr.md).
+- [Read the documentation PR description](docs-pr.md).
+- [Read the branding PR description](brands-pr.md).
+
 ## Review the changes
 
 - [Core integration and tests](https://github.com/home-assistant/core/compare/dev...RebbePod:add-ada-rs232)
