@@ -9,6 +9,6 @@
   "integration_type": "hub",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/RebbePod/ada-rs232/issues",
-  "requirements": ["ada-rs232==0.2.0b1"],
-  "version": "0.2.0b1"
+  "requirements": ["ada-rs232==0.2.0"],
+  "version": "0.2.0"
 }

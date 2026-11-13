@@ -144,3 +144,7 @@ compatibility baseline.
 The setup parser has been checked against the printed manual, not a real setup
 terminal capture. New setup, broadcast, daisy-chain, and PTM-8100 paths still need
 hardware testing. No upstream PRs, issues, or comments have been submitted.
+
+Version 0.2.0 publishes the same expanded runtime as a regular HACS release,
+using the regular ada-rs232 0.2.0 package. Hardware-verification limitations
+remain as described above. The initial Core proposal is unchanged.

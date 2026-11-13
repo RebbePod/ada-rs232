@@ -20,19 +20,19 @@ wheels = [
 
 [[package]]
 name = "ada-rs232"
-version = "0.2.0b1"
+version = "0.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "serialx" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/97/9a/2d06a85e776d5c0195fb0774b21aae636114e76f1c959fdd1c5a9f5023ac/ada_rs232-0.2.0b1.tar.gz", hash = "sha256:6e8567e5fc38fd81e1c050a64578205993d9bc460e742c59f9c39706ad27d040", size = 52459, upload-time = "2026-11-13T02:59:43.35Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/87/15/319042d05646bf498e9cff1da063f0c95e6aa1837edc891c099fed72c93d/ada_rs232-0.2.0.tar.gz", hash = "sha256:20df31365b9745dc1424acbcf82ad7ace67210e343968e89a09aeda458511e79", size = 52529, upload-time = "2026-11-13T03:12:46.515Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9e/89/19387c2b0389deddb2e2753947dded3d7006a26b6fcaa8f661d7c8663d45/ada_rs232-0.2.0b1-py3-none-any.whl", hash = "sha256:9a7592175d755c7597d1abfc9b4df66583e69abf180ed3655a8eb09d23c9b4fd", size = 10609, upload-time = "2026-11-13T02:59:42.162Z" },
+    { url = "https://files.pythonhosted.org/packages/59/3a/aa658dfea0450159f0b5c9c4db1ae6d840bfe27104c159861b2e2e9cbef1/ada_rs232-0.2.0-py3-none-any.whl", hash = "sha256:62150e9aa4dda4cdce824f59b83da0eb0086f91baa44850bd9aa8c7c33a77203", size = 10584, upload-time = "2026-11-13T03:12:45.458Z" },
 ]
 
 [[package]]
 name = "ada-rs232-home-assistant"
-version = "0.2.0b1"
+version = "0.2.0"
 source = { virtual = "." }
 
 [package.dev-dependencies]
@@ -50,7 +50,7 @@ dev = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "ada-rs232", specifier = "==0.2.0b1" },
+    { name = "ada-rs232", specifier = "==0.2.0" },
     { name = "homeassistant", specifier = "==2026.11.1" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },

@@ -10,9 +10,9 @@ connection. This is an installable custom integration, with a UI setup flow
 modeled on [Denon RS-232](https://www.home-assistant.io/integrations/denon_rs232/).
 It requires **Home Assistant 2026.11.0 or newer**.
 
-## Expanded serial support (0.2.0 beta)
+## Expanded serial support (0.2.0)
 
-This branch adds the remaining documented PAC serial commands. The new setup
+This release adds the remaining documented PAC serial commands. The new setup
 and daisy-chain paths have emulator coverage and still need hardware testing.
 The existing single-amplifier zone controls were tested on a physical PTM-1645.
 
@@ -62,8 +62,7 @@ the largest timeout requested by entries sharing the connection.
 
 1. In **HACS**, open the **⋮** menu and choose **Custom repositories**.
 2. Enter **https://github.com/RebbePod/ada-rs232** and select type **Integration**.
-3. Add the repository, find **ADA RS-232**, and download the release. For these
-   new commands, enable beta versions in HACS and select **v0.2.0b1**.
+3. Add the repository, find **ADA RS-232**, and download **v0.2.0** or newer.
 4. Restart Home Assistant.
 5. Open **Settings → Devices & services → Add integration → ADA RS-232**.
 6. Select your serial port and enter the amplifier's existing PAC address.
