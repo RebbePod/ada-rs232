@@ -53,7 +53,8 @@ flow control**. GPIO UART pins require an appropriate RS-232 transceiver; a
 software proxy does not perform electrical level conversion.
 
 For a daisy chain, add one integration entry per amplifier using exactly the same
-port URL and different PAC addresses. All entries share one transport and command
+port URL. Setup filters out addresses that already have entries. Each amplifier
+must already have a unique PAC address. All entries share one transport and command
 queue. Duplicate port/address pairs are blocked. A failed shared transport makes
 its amplifiers unavailable until the next successful poll. Response timeout uses
 the largest timeout requested by entries sharing the connection.
@@ -62,10 +63,12 @@ the largest timeout requested by entries sharing the connection.
 
 1. In **HACS**, open the **⋮** menu and choose **Custom repositories**.
 2. Enter **https://github.com/RebbePod/ada-rs232** and select type **Integration**.
-3. Add the repository, find **ADA RS-232**, and download **v0.2.0** or newer.
+3. Add the repository, find **ADA RS-232**, and download **v0.2.1** or newer.
 4. Restart Home Assistant.
 5. Open **Settings → Devices & services → Add integration → ADA RS-232**.
-6. Select your serial port and enter the amplifier's existing PAC address.
+6. Select your serial port and amplifier model. Setup discovers existing PAC
+   addresses automatically. If several available amplifiers respond, choose one
+   from the discovered list. The scan does not change hardware settings.
 
 For your existing ESPHome connection, follow the migration steps below before
 adding the integration. HACS installs the Home Assistant files; the serial proxy
@@ -75,6 +78,21 @@ See [HACS custom repository instructions](https://www.hacs.xyz/docs/faq/custom_r
 This repository is available as a custom repository; it is not in the default
 HACS catalog or Home Assistant Core.
 
+### Logo or version still looks old
+
+The release includes the supplied ADA artwork in `brand/`, including separate
+light and dark icons and logos. Home Assistant serves these local images through
+its brands API. After updating in HACS, perform a full **Home Assistant restart**;
+reloading the integration alone can leave cached integration metadata. Reload
+the browser or Companion app afterward. If necessary, use a hard refresh of the
+browser. The integration page should show the installed version **0.2.1** or newer.
+
+If the page still reports **0.1.0** or shows a generic amplifier icon, first check
+HACS has downloaded the current release. Verify that
+`/config/custom_components/ada_rs232/brand/` contains the PNG artwork. A new API
+test verifies every shipped light, dark, and high-resolution image is served
+by Home Assistant instead of a placeholder.
+
 ## Install manually
 
 1. Copy `custom_components/ada_rs232` from this repository into
@@ -82,8 +100,9 @@ HACS catalog or Home Assistant Core.
    should be at `/config/custom_components/ada_rs232/manifest.json`.
 2. Restart Home Assistant.
 3. Open **Settings → Devices & services → Add integration → ADA RS-232**.
-4. Select your serial port and enter the amplifier's existing PAC address.
-   Setup sends a read-only query to verify a valid eight-zone response.
+4. Select your serial port and amplifier model. Setup scans for existing
+   amplifiers using a read-only query. One available amplifier is selected
+   automatically; if several respond, choose one from the discovered list.
 
 For local USB adapters, prefer `/dev/serial/by-id/...`. For a network serial
 server, enter its URL manually. A raw `socket://` server must already be
@@ -142,8 +161,9 @@ operation. The PAC protocol has no transaction IDs or atomic single-zone command
 so an external change between read and write cannot be made atomic by software.
 
 Connection options are under the integration's **Configure** menu. Use
-**Reconfigure** to change the port/address. Reconfiguration saves the settings
-and reconnects through normal setup; an offline connection will show setup retry.
+**Reconfigure** to change the connection or select another discovered amplifier.
+To change the address stored in hardware, use the explicit setup action below.
+A scan only reads existing addresses.
 
 ## PAC actions
 

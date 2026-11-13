@@ -3,29 +3,32 @@
   "config": {
     "step": {
       "user": {
-        "title": "Connect your ADA PTM-1645",
-        "description": "Select an RS-232 connection, amplifier address, and model. Add another entry using the same port and a different address for each daisy-chained amplifier. Independent zone switches require default one-to-one trigger mappings.",
+        "title": "Connect your ADA amplifier",
+        "description": "Select the serial connection and amplifier model. Home Assistant will scan for existing amplifiers without changing any hardware settings. With one available amplifier, its address is selected automatically.",
         "data": {
           "device": "Serial port",
-          "address": "Amplifier address",
           "model": "Amplifier model"
-        },
-        "data_description": {
-          "address": "Existing PAC address, from 1 to 9. This does not change the amplifier's address."
         }
       },
       "reconfigure": {
         "title": "Change the ADA connection",
-        "description": "The integration will reconnect using these settings. Zone entity IDs are preserved. If the amplifier cannot be reached, setup will retry automatically.",
+        "description": "Select the serial connection and amplifier model. Home Assistant will scan for existing amplifiers without changing any hardware settings. With one available amplifier, its address is selected automatically.",
         "data": {
           "device": "Serial port",
-          "address": "Amplifier address",
           "model": "Amplifier model"
+        }
+      },
+      "select_amplifier": {
+        "title": "Select a discovered amplifier",
+        "description": "More than one available amplifier responded on this connection. Choose the amplifier to add. These are existing addresses; this does not change the address stored in the hardware.",
+        "data": {
+          "address": "Amplifier"
         }
       }
     },
     "error": {
-      "cannot_connect": "No valid amplifier response. Check the port, PAC address, RS-232 wiring and that the old ESPHome scripts are removed. The connection uses 19200 baud, 8N1, with no flow control."
+      "cannot_connect": "No amplifier responded to the read-only scan. Check the serial connection, amplifier power and normal operating mode, and remove any old ESPHome polling scripts. The connection uses 19200 baud, 8N1, with no flow control.",
+      "unknown": "An unexpected error occurred while scanning for amplifiers. Check the Home Assistant logs."
     },
     "abort": {
       "already_configured": "This amplifier address is already configured on this serial connection.",

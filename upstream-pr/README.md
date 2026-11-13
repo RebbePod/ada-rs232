@@ -148,3 +148,16 @@ hardware testing. No upstream PRs, issues, or comments have been submitted.
 Version 0.2.0 publishes the same expanded runtime as a regular HACS release,
 using the regular ada-rs232 0.2.0 package. Hardware-verification limitations
 remain as described above. The initial Core proposal is unchanged.
+
+Version 0.2.1 removes manual address entry from the HACS connection form. A
+read-only GA scan selects a single available amplifier automatically, or offers
+a dropdown of unconfigured responding addresses. Reconfiguration preserves
+existing entity IDs and custom device names. No hardware settings are changed
+by discovery. The initial Core proposal remains unchanged.
+
+Branding was verified against all eight shipped images through Home Assistant's
+authenticated brands API. The reported screenshot showed Version 0.1.0 with a
+generic placeholder while showing newer dialog text, suggesting cached or mixed
+integration metadata. The documentation now calls for a full Home Assistant
+restart and browser refresh after updating. No arbitrary replacement artwork or
+frontend workaround was added.

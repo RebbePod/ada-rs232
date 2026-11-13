@@ -20,7 +20,6 @@ def mock_client() -> Generator[MagicMock]:
     """Mock only the device boundary, keeping HA lifecycle real."""
     with (
         patch(f"custom_components.{DOMAIN}.AdaClient", autospec=True) as constructor,
-        patch(f"custom_components.{DOMAIN}.config_flow.AdaClient", constructor),
     ):
         client = constructor.return_value
         client.async_get_state = AsyncMock(return_value=(False,) * 8)
@@ -37,3 +36,13 @@ def mock_client() -> Generator[MagicMock]:
 
         constructor.side_effect = create_client
         yield client
+
+
+@pytest.fixture
+def mock_discovery() -> Generator[AsyncMock]:
+    """Mock only the library's read-only whole-chain query."""
+    with patch(
+        f"custom_components.{DOMAIN}.connection.AdaBus.async_get_states",
+        return_value={1: (False,) * 8},
+    ) as query:
+        yield query
