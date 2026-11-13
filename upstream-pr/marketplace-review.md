@@ -1,9 +1,9 @@
 # Full Marketplace package and catalog submission
 
-**Stable v0.2.2 is published and installable now.** The public catalog listing
-is prepared but has not been submitted. Automatic approval review requires the
-repository owner's personal review and understanding confirmation before the
-upstream PR can be opened.
+**Stable v0.2.2 is published and installable now.** After the repository owner
+confirmed personal review, understanding, and approval, the public catalog
+listing was submitted as [PR #14106](https://github.com/hacs/default/pull/14106).
+It is open for maintainer review and allows maintainer edits.
 
 ## What users get
 
@@ -23,7 +23,7 @@ Marketplace and HACS.
 - [Full integration source at the release revision](https://github.com/RebbePod/ada-rs232/tree/726cfb3634a6b3659aafa376b8ef10ec2a68903f/custom_components/ada_rs232)
 - [Changes since v0.2.1](https://github.com/RebbePod/ada-rs232/compare/v0.2.1...v0.2.2)
 - [Catalog diff: one added repository name](https://github.com/hacs/default/compare/master...RebbePod:add-ada-rs232)
-- [Exact proposed catalog PR description](marketplace-pr.md)
+- [Exact submitted catalog PR description](marketplace-pr.md)
 - [Installation and full functionality guide](https://github.com/RebbePod/ada-rs232/blob/v0.2.2/README.md)
 
 The catalog change adds this one line to the alphabetically sorted `integration`
@@ -57,8 +57,12 @@ instructions and synchronize the package version at 0.2.2.
 - [Marketplace/HACS validation](https://github.com/RebbePod/ada-rs232/actions/runs/43464267062/job/132019046274) passes without ignored checks.
 - [Hassfest](https://github.com/RebbePod/ada-rs232/actions/runs/43464267062/job/132019046315) passes.
 - The full stable release was published after these validations succeeded.
-- The catalog JSON passes the repository's sorting script and JSON validation;
-  the diff adds exactly one line.
+- [Upstream catalog checks](https://github.com/hacs/default/actions/runs/43483775597)
+  pass, including owner, release, maintainer-edit permission, core domain
+  conflict, repository status, HACS validation, and hassfest checks.
+- [Catalog lint checks](https://github.com/hacs/default/actions/runs/43483764843)
+  pass, including JSON schema, JSON syntax, and sorting. The diff adds exactly
+  one line.
 - The release archive contains 22 integration files, including all eight brand
   images, and its manifest identifies version 0.2.2.
 
@@ -67,9 +71,11 @@ PTM-1645 through ESPHome. Hardware setup actions, physical daisy chains, and
 PTM-8100 support still need hardware verification. Automated tests do not replace
 that hardware validation.
 
-## Confirmation needed
+## Submission status
 
-After reviewing the release code, the catalog diff, and the exact PR text,
-confirm that you understand the changes and approve opening the Marketplace
-catalog PR. This confirmation applies to the catalog submission; the separate
-Core, documentation, and brands submissions retain their own pending review.
+The owner confirmed personal review, understanding, and approval of the catalog
+submission. All upstream automated checks pass. The PR is open in the maintainer
+review queue; the package is not in the default catalog until it is merged.
+
+This approval applies to the Marketplace catalog submission. The separate Core,
+documentation, and brands submissions retain their own pending review.

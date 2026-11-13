@@ -7,9 +7,10 @@ the released HACS integration or submit anything upstream automatically.
 ## Full Marketplace package
 
 Stable [v0.2.2](https://github.com/RebbePod/ada-rs232/releases/tag/v0.2.2)
-contains the complete serial feature set. Its catalog submission is prepared
-separately: [review the Marketplace changes and exact PR text](marketplace-review.md).
-No catalog PR has been opened; the stable package is already installable by link.
+contains the complete serial feature set. Following the owner's personal review
+and approval, [Marketplace catalog PR #14106](https://github.com/hacs/default/pull/14106)
+is open. [Review its changes and exact PR text](marketplace-review.md).
+The stable package is already installable by link while catalog review is pending.
 
 ## Read and review
 
@@ -117,4 +118,6 @@ requires that "a human must review, understand, and be able to explain every
 change before it is submitted." This is also required by the
 [Home Assistant AI policy](https://contributors.home-assistant.io/start/ai-policy/).
 
-No upstream PRs, issues, or comments have been opened during preparation.
+The Marketplace catalog PR above is open. The separate Home Assistant Core,
+documentation, and brands PRs have not been opened and retain their pending
+personal review requirements.
