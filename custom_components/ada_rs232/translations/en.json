@@ -4,31 +4,80 @@
     "step": {
       "user": {
         "title": "Connect your ADA PTM-1645",
-        "description": "Select a local RS-232 port or ESPHome serial proxy. The amplifier must use its default one-to-one trigger mapping. Setup reads the amplifier without changing any zones.",
-        "data": {"device": "Serial port", "address": "Amplifier address"},
-        "data_description": {"address": "Existing PAC address, from 1 to 9. This does not change the amplifier's address."}
+        "description": "Select an RS-232 connection, amplifier address, and model. Add another entry using the same port and a different address for each daisy-chained amplifier. Independent zone switches require default one-to-one trigger mappings.",
+        "data": {
+          "device": "Serial port",
+          "address": "Amplifier address",
+          "model": "Amplifier model"
+        },
+        "data_description": {
+          "address": "Existing PAC address, from 1 to 9. This does not change the amplifier's address."
+        }
       },
       "reconfigure": {
         "title": "Change the ADA connection",
         "description": "The integration will reconnect using these settings. Zone entity IDs are preserved. If the amplifier cannot be reached, setup will retry automatically.",
-        "data": {"device": "Serial port", "address": "Amplifier address"}
+        "data": {
+          "device": "Serial port",
+          "address": "Amplifier address",
+          "model": "Amplifier model"
+        }
       }
     },
-    "error": {"cannot_connect": "No valid amplifier response. Check the port, PAC address, RS-232 wiring and that the old ESPHome scripts are removed. The connection uses 19200 baud, 8N1, with no flow control."},
+    "error": {
+      "cannot_connect": "No valid amplifier response. Check the port, PAC address, RS-232 wiring and that the old ESPHome scripts are removed. The connection uses 19200 baud, 8N1, with no flow control."
+    },
     "abort": {
-      "already_configured": "This serial port is already configured. Only one amplifier per connection is supported.",
+      "already_configured": "This amplifier address is already configured on this serial connection.",
       "no_changes": "The connection settings have not changed.",
-      "reconfigure_successful": "Connection settings updated."
+      "reconfigure_successful": "Connection settings updated.",
+      "setup_active": "Exit physical setup mode and run Resume normal operation before reconfiguring the connection."
     }
   },
   "options": {
     "step": {
       "init": {
         "title": "ADA communication settings",
-        "data": {"poll_interval": "Poll interval (seconds)", "response_timeout": "Response timeout (seconds)"}
+        "data": {
+          "poll_interval": "Poll interval (seconds)",
+          "response_timeout": "Response timeout (seconds)"
+        }
+      }
+    },
+    "abort": {
+      "setup_active": "Exit physical setup mode and run Resume normal operation before reconfiguring the connection."
+    }
+  },
+  "entity": {
+    "switch": {
+      "zone": {
+        "name": "Zone {zone}"
+      }
+    },
+    "binary_sensor": {
+      "output": {
+        "name": "Output {zone}"
       }
     }
   },
-  "entity": {"switch": {"zone": {"name": "Zone {zone}"}}},
-  "exceptions": {"command_failed": {"message": "The amplifier did not confirm the command. Check the serial connection and try again."}}
+  "exceptions": {
+    "command_failed": {
+      "message": "The amplifier did not confirm the command. Check the serial connection and try again."
+    },
+    "entry_not_loaded": {
+      "message": "Select a loaded ADA integration entry."
+    },
+    "single_amplifier_required": {
+      "message": "Hardware setup requires one loaded amplifier entry on this connection. Disable the other entries and physically disconnect all loop-through amplifiers before reading setup."
+    },
+    "address_in_use": {
+      "message": "Another amplifier entry already uses this address on the connection. Correct its configuration before resuming."
+    },
+    "setup_failed": {
+      "message": "The setup operation was not confirmed. Connect only one amplifier, hold its rear Setup button for more than five seconds and release, then read setup before changing settings. After editing, press Setup once and run Resume. Read the current setup screen again after an uncertain write."
+    },
+    "invalid_output_mask": {
+      "message": "This model has only four stereo outputs. Set bits 5 through 8 to zero."
+    }
+  }
 }

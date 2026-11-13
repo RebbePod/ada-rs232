@@ -1,12 +1,14 @@
 """UI setup and configuration regression tests."""
 
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
 import pytest
+from ada_rs232 import AdaConnectionError
 from homeassistant.const import CONF_DEVICE
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant.common import MockConfigEntry
 
+from custom_components.ada_rs232.connection import connections
 from custom_components.ada_rs232.const import (
     CONF_ADDRESS,
     CONF_POLL_INTERVAL,
@@ -32,7 +34,7 @@ async def test_form_and_read_only_validation(hass, mock_client) -> None:
     mock_client.async_close.assert_awaited_once()
 
 
-@pytest.mark.parametrize("error", [TimeoutError, OSError, ValueError])
+@pytest.mark.parametrize("error", [AdaConnectionError, ValueError])
 async def test_connection_error_can_be_corrected(hass, mock_client, error) -> None:
     mock_client.async_get_state.side_effect = error
     result = await hass.config_entries.flow.async_init(
@@ -48,11 +50,11 @@ async def test_connection_error_can_be_corrected(hass, mock_client, error) -> No
         await hass.async_block_till_done()
 
 
-async def test_duplicate_port_even_with_different_address(hass, mock_client) -> None:
+async def test_duplicate_port_and_address(hass, mock_client) -> None:
     entry = MockConfigEntry(domain=DOMAIN, data=DATA)
     entry.add_to_hass(hass)
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"}, data={**DATA, CONF_ADDRESS: 2}
+        DOMAIN, context={"source": "user"}, data=DATA
     )
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "already_configured"
@@ -89,4 +91,43 @@ async def test_reconfigure_preserves_entry(hass, mock_client) -> None:
     assert entry.data == updated
     assert entry.title == "ADA PTM-1645 (2)"
     assert {s.entity_id for s in hass.states.async_all("switch")} == original_ids
+    assert "/dev/test" not in connections(hass)
+    await hass.config_entries.async_unload(entry.entry_id)
+    assert not connections(hass)
+
+
+async def test_same_port_different_address_uses_existing_bus(hass, mock_client) -> None:
+    entry = MockConfigEntry(domain=DOMAIN, data=DATA)
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    shared = connections(hass)[DATA[CONF_DEVICE]]
+    with patch("custom_components.ada_rs232.async_setup_entry", return_value=None):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": "user"}, data={**DATA, CONF_ADDRESS: 9}
+        )
+        await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert connections(hass)[DATA[CONF_DEVICE]] is shared
+    assert set(shared.owners) == {entry.entry_id}
+    await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_reconfiguration_blocked_during_setup(hass, mock_client) -> None:
+    entry = MockConfigEntry(domain=DOMAIN, data=DATA)
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    bus = entry.runtime_data.client.bus
+    with patch.object(
+        type(bus), "in_setup", new_callable=PropertyMock, return_value=True
+    ):
+        options = await hass.config_entries.options.async_init(entry.entry_id)
+        assert options["type"] is FlowResultType.ABORT
+        assert options["reason"] == "setup_active"
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": "reconfigure", "entry_id": entry.entry_id},
+            data={**DATA, CONF_ADDRESS: 2},
+        )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "setup_active"
     await hass.config_entries.async_unload(entry.entry_id)

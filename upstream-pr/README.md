@@ -105,3 +105,42 @@ Core's `AGENTS.md` states: “a human must review, understand, and be able to ex
 every change before it is submitted.” Its PR template asks you to attest that
 you understand the code. The request for final review follows that repository
 requirement.
+
+## Review update and expanded HACS beta
+
+On 2026-11-12, the prepared Core integration and library were reviewed again
+against Core's `AGENTS.md`, `ha-integration-knowledge`, the current quality rules,
+and the supplied PAC manual. The unchanged Core proposal passes its 15 tests
+and 16 snapshots with 100% line coverage across all five modules. The complete
+prescribed prek suite passes, including mypy, pylint, hassfest, and generated
+metadata checks. This is an AI-assisted code review; it does not replace the
+contributor's personal review and understanding required before submission.
+
+The separate `expand-pac-protocol` branches add all remaining documented serial
+commands to the library and HACS integration. They are excluded from the initial
+Core proposal and its pinned `ada-rs232==0.1.0` dependency. The beta adds a shared
+transport per port, addressed clients, GA queries, atomic masks, SA all-off,
+setup screen readback, verified T/Q/A/D setup operations, and explicit resumption.
+PTM-8100 exposes four outputs; PTM-1645 exposes eight.
+
+Review findings fixed in the beta include retaining the original port for unload
+cleanup after reconfiguration, retaining the connection while another entry owns
+it, waiting for late address-9 broadcast replies, discarding missing-address
+cache entries, reading Q before toggling, accepting fragmented setup screens,
+and persisting uncertain/custom mapping status before settings writes. Custom
+mappings disable independent zone switches; optional output binary sensors
+report actual output states. Setup actions require administrator access, an
+explicit single-amplifier confirmation, and complete setup-screen readback.
+
+Validation for the expansion: 54 library tests (97% line coverage), strict mypy,
+Ruff, and wheel/source builds pass. Library CI passes on Python 3.12, 3.13, and
+3.14. The HACS integration passes 41 tests (99% line coverage), including all
+custom actions, permissions, shared ownership, mapping uncertainty, stable entity
+IDs after address changes, and cleanup after port changes. Full scoped hassfest
+passes against the unmodified upstream base. The prepared Core checkout itself
+contains the older proposed library pin, so it is not used as the HACS dependency
+compatibility baseline.
+
+The setup parser has been checked against the printed manual, not a real setup
+terminal capture. New setup, broadcast, daisy-chain, and PTM-8100 paths still need
+hardware testing. No upstream PRs, issues, or comments have been submitted.

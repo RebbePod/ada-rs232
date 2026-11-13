@@ -27,4 +27,13 @@ def mock_client() -> Generator[MagicMock]:
         client.async_set_zone = AsyncMock(return_value=(True,) + (False,) * 7)
         client.async_close = AsyncMock()
         client.subscribe.return_value = MagicMock()
+
+        def create_client(*args, **kwargs):
+            from ada_rs232 import AdaBus
+
+            client.bus = kwargs.get("bus") or AdaBus("/dev/test")
+            client.address = args[1]
+            return client
+
+        constructor.side_effect = create_client
         yield client

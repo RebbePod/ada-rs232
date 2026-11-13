@@ -10,9 +10,20 @@ connection. This is an installable custom integration, with a UI setup flow
 modeled on [Denon RS-232](https://www.home-assistant.io/integrations/denon_rs232/).
 It requires **Home Assistant 2026.11.0 or newer**.
 
+## Expanded serial support (0.2.0 beta)
+
+This branch adds the remaining documented PAC serial commands. The new setup
+and daisy-chain paths have emulator coverage and still need hardware testing.
+The existing single-amplifier zone controls were tested on a physical PTM-1645.
+
 ## Supported functionality
 
-- Eight zone power switches, grouped under one PTM-1645 device.
+- Eight stereo-zone power switches for PTM-1645, or four for PTM-8100.
+- Up to nine uniquely addressed amplifiers on one shared serial connection.
+- Atomic trigger-mask writes, a whole-chain state query, and broadcast all-off.
+- Explicit setup actions for trigger mapping, Quick Turn On, and stored address.
+- Firmware, address, Quick Turn On, and mapping readback from the setup screen.
+- Optional output binary sensors that report actual outputs with any mapping.
 - Local USB/RS-232 ports, ESPHome native serial proxies, and serialx-supported
   network serial connections such as `socket://` and `rfc2217://`.
 - Hardware-confirmed state, unsolicited feedback handling, and periodic polling
@@ -23,15 +34,17 @@ It requires **Home Assistant 2026.11.0 or newer**.
   entity IDs, and diagnostics that omit the connection endpoint and credentials.
 
 The PTM-1645 is a power amplifier: this integration exposes zone power. Volume,
-mute, source selection, playback and amplifier setup commands are not exposed.
+mute, source selection, and playback have no commands in this PAC manual.
 It does not change zone power when Home Assistant starts or stops.
 
 ## Prerequisites
 
-- A PTM-1645 with PAC data control and an existing address from **1 to 9**.
+- A PTM-1645 or PTM-8100 with PAC data control and an existing address from **1 to 9**.
 - The **default one-to-one trigger mapping**. PAC feedback reports output states,
   while data commands operate the configured triggers. A custom trigger mapping
-  makes an independent output switch model ambiguous and is unsupported.
+  makes an independent output switch model ambiguous. When setup readback shows
+  custom mappings, zone switches become unavailable. Use explicit trigger-mask
+  actions and the optional output binary sensors instead.
 - An RS-232 connection to the amplifier, either directly from Home Assistant or
   through your ESPHome device and its existing RS-232 level converter.
 
@@ -39,14 +52,18 @@ The protocol settings are **19200 baud, 8 data bits, no parity, 1 stop bit, no
 flow control**. GPIO UART pins require an appropriate RS-232 transceiver; a
 software proxy does not perform electrical level conversion.
 
-One amplifier per serial connection is supported. PAC daisy chains need a shared
-bus manager and are outside this release. Adding the same port twice is blocked.
+For a daisy chain, add one integration entry per amplifier using exactly the same
+port URL and different PAC addresses. All entries share one transport and command
+queue. Duplicate port/address pairs are blocked. A failed shared transport makes
+its amplifiers unavailable until the next successful poll. Response timeout uses
+the largest timeout requested by entries sharing the connection.
 
 ## Install with HACS
 
 1. In **HACS**, open the **⋮** menu and choose **Custom repositories**.
 2. Enter **https://github.com/RebbePod/ada-rs232** and select type **Integration**.
-3. Add the repository, find **ADA RS-232**, and download the latest release.
+3. Add the repository, find **ADA RS-232**, and download the release. For these
+   new commands, enable beta versions in HACS and select **v0.2.0b1**.
 4. Restart Home Assistant.
 5. Open **Settings → Devices & services → Add integration → ADA RS-232**.
 6. Select your serial port and enter the amplifier's existing PAC address.
@@ -111,7 +128,8 @@ Concurrent service calls therefore preserve each other's changes. A silent
 `S` command is supported; a successful write alone never confirms switch state.
 Unknown state is never filled with eight default-off bits and written to the amp.
 
-The parser ignores echoed commands, other addresses and invalid bit strings.
+The parser rejects echoed commands and invalid bit strings, and routes each
+valid feedback frame to the matching amplifier address.
 It handles fragmented packets, CR/LF/CRLF, and complete unterminated replies after
 a short idle gap. Timeouts close the connection so a late reply from the old
 connection cannot satisfy the next request.
@@ -128,10 +146,59 @@ Connection options are under the integration's **Configure** menu. Use
 **Reconfigure** to change the port/address. Reconfiguration saves the settings
 and reconnects through normal setup; an offline connection will show setup retry.
 
+## PAC actions
+
+Open **Developer tools → Actions** and choose an **ADA RS-232** action. Select
+an amplifier entry in its form. All custom PAC actions require an administrator;
+normal zone switches use Home Assistant's usual entity permissions. Every action
+can return its confirmed settings or actual output states as response data.
+
+| Action | Function |
+| --- | --- |
+| `ada_rs232.query_all` | `GA`: read all responding amplifiers on the selected entry's connection. |
+| `ada_rs232.set_trigger_states` | `S<address>=<mask>`: write eight trigger bits in one command. |
+| `ada_rs232.all_off` | `SA=00000000`: turn off the serial triggers on the entire connection, including unconfigured amplifiers. |
+| `ada_rs232.read_setup` | Enter: read the hardware setup screen. |
+| `ada_rs232.set_trigger_mapping` | `T1`–`T8`: assign a trigger to output bits. |
+| `ada_rs232.set_quick_turn_on` | Read the setting, toggle `Q` only when needed, then verify. |
+| `ada_rs232.set_address` | `A1`–`A9`: change the address stored in the amplifier. |
+| `ada_rs232.restore_trigger_defaults` | `D`: restore one-to-one trigger mappings. |
+| `ada_rs232.resume` | Verify normal operation after physically exiting setup. |
+
+Masks contain exactly eight `0`/`1` characters, leftmost bit first. With default
+mapping, `10000000` activates zone 1 and `00000000` clears every serial trigger.
+For PTM-8100, bits 5 through 8 must be zero. Hardware voltage triggers and bypass
+can keep outputs on even after all-off; responses report actual outputs.
+
+### Change hardware setup
+
+1. Disable other amplifier entries sharing this connection and physically
+   disconnect all loop-through amplifiers. Only one amplifier may be connected.
+2. Hold its rear **Setup** button for more than five seconds and release it.
+3. Run **Read hardware setup**, confirming the single-amplifier condition.
+   The response shows firmware, address, Quick Turn On, and all trigger mappings.
+4. Run the desired setup action. Each write verifies the resulting setup screen.
+   Quick Turn On keeps the power supply running for immediate audio response;
+   otherwise initial audio activation can take about three seconds.
+5. Press **Setup** once to exit, then run **Resume normal operation**. A confirmed
+   address change is saved immediately so it survives a restart. Resume applies
+   that address to the running connection and preserves entity IDs.
+6. Reconnect the chain and enable its other integration entries.
+
+The amplifier leaves setup after 60 seconds of inactivity. If a command loses its
+confirmation, read setup again before retrying. A mapping write with uncertain
+results keeps zone switches unavailable until a complete screen confirms the
+mapping. Custom mapping status is saved across restarts. Output binary sensors
+are disabled by default; enable them on the amplifier's device page to monitor
+physical outputs when using custom mappings. A model selected as PTM-8100 has
+four output sensors and four zone switches.
+
 ## Validation and troubleshooting
 
 This implementation has automated protocol and Home Assistant lifecycle tests.
-Physical PTM-1645 and ESP32 validation still needs to be done on your equipment.
+The earlier single-amplifier controls worked on the maintainer's PTM-1645
+through ESPHome. The new commands, setup screen parser, daisy chains, and
+PTM-8100 handling still need verification on real equipment.
 After installation, verify initial state, turn one unused zone on/off, and check
 that another active zone is preserved. Then disconnect/reconnect the bridge and
 check that entities recover after a poll.
@@ -140,7 +207,7 @@ If setup cannot read the amplifier, check the selected PAC address, RS-232
 transceiver/cabling, amplifier power and network/API connection. Confirm the old
 ESPHome scripts and custom UART commands have been removed. Configure the amp's
 address and trigger mapping using its documented setup procedure, then exit
-setup mode before connecting this integration. Other PAC models are untested.
+setup mode before normal power control. PTM-8100 support is untested on hardware.
 
 The command reference is the manufacturer's **PAC Instructions for PTM-1645 &
 PTM-8100 Amps**, available as a [manual reproduction](https://manualzz.com/doc/57518291/audio-design-associates-ada-pac-ptm-1645-instructions).
@@ -157,7 +224,7 @@ uv run ruff format --check custom_components tests scripts
 uv run pytest --cov=custom_components.ada_rs232 --cov-report=term-missing
 ```
 
-The locked test environment uses Home Assistant 2026.11.1. Tests cover protocol
-framing, wrong-address replies, concurrent zone changes, hardware overrides,
-timeouts, cancellation, disconnect/reconnect, config flows, switch services,
-availability, unload and diagnostics. CI runs these checks on Linux.
+The locked test environment uses Home Assistant 2026.11.1. Home Assistant tests
+cover configuration, lifecycle, shared ownership, permissions, setup guards,
+command responses, and model-specific behavior. Protocol tests live in the
+[ada-rs232 library](https://github.com/RebbePod/ada-rs232-python). CI runs on Linux.

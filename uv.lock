@@ -19,12 +19,25 @@ wheels = [
 ]
 
 [[package]]
+name = "ada-rs232"
+version = "0.2.0b1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "serialx" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/97/9a/2d06a85e776d5c0195fb0774b21aae636114e76f1c959fdd1c5a9f5023ac/ada_rs232-0.2.0b1.tar.gz", hash = "sha256:6e8567e5fc38fd81e1c050a64578205993d9bc460e742c59f9c39706ad27d040", size = 52459, upload-time = "2026-11-13T02:59:43.35Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9e/89/19387c2b0389deddb2e2753947dded3d7006a26b6fcaa8f661d7c8663d45/ada_rs232-0.2.0b1-py3-none-any.whl", hash = "sha256:9a7592175d755c7597d1abfc9b4df66583e69abf180ed3655a8eb09d23c9b4fd", size = 10609, upload-time = "2026-11-13T02:59:42.162Z" },
+]
+
+[[package]]
 name = "ada-rs232-home-assistant"
-version = "0.1.1"
+version = "0.2.0b1"
 source = { virtual = "." }
 
 [package.dev-dependencies]
 dev = [
+    { name = "ada-rs232" },
     { name = "homeassistant" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
@@ -37,6 +50,7 @@ dev = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "ada-rs232", specifier = "==0.2.0b1" },
     { name = "homeassistant", specifier = "==2026.11.1" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },

@@ -1,11 +1,12 @@
 [project]
 name = "ada-rs232-home-assistant"
-version = "0.1.1"
+version = "0.2.0b1"
 description = "Home Assistant serial integration for the ADA PTM-1645"
 requires-python = ">=3.14.2"
 
 [dependency-groups]
 dev = [
+  "ada-rs232==0.2.0b1",
   "homeassistant==2026.11.1",
   "pytest-homeassistant==2026.11.1",
   "serialx==1.15.1",
@@ -25,3 +26,6 @@ target-version = "py314"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "ASYNC"]
+
+[tool.ruff.lint.isort]
+known-third-party = ["ada_rs232", "homeassistant"]

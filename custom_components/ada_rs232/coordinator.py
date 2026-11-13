@@ -3,12 +3,14 @@
 import logging
 from datetime import timedelta
 
+from ada_rs232 import AdaClient, AdaError, SetupState, ZoneState
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_DEVICE
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .client import COMMUNICATION_ERRORS, AdaClient, ZoneState
+from .connection import release_connection
 from .const import (
     CONF_POLL_INTERVAL,
     DEFAULT_POLL_INTERVAL,
@@ -35,6 +37,10 @@ class AdaCoordinator(DataUpdateCoordinator[ZoneState]):
             always_update=False,
         )
         self.client = client
+        self.entry = entry
+        self._port = entry.data[CONF_DEVICE]
+        self.setup_state: SetupState | None = None
+        self._closed = False
         self._unsubscribe = client.subscribe(self._handle_state)
 
     @callback
@@ -47,7 +53,7 @@ class AdaCoordinator(DataUpdateCoordinator[ZoneState]):
     async def _async_update_data(self) -> ZoneState:
         try:
             return await self.client.async_get_state()
-        except COMMUNICATION_ERRORS as err:
+        except AdaError as err:
             # Never expose a port URL or a transport exception: proxy URLs may
             # contain API credentials.
             raise UpdateFailed("Unable to read amplifier state") from err
@@ -56,7 +62,7 @@ class AdaCoordinator(DataUpdateCoordinator[ZoneState]):
         """Set a zone, publishing only hardware feedback."""
         try:
             state = await self.client.async_set_zone(zone, enabled)
-        except COMMUNICATION_ERRORS as err:
+        except AdaError as err:
             self.async_set_update_error(UpdateFailed("Amplifier command failed"))
             raise HomeAssistantError(
                 translation_domain=DOMAIN, translation_key="command_failed"
@@ -65,9 +71,13 @@ class AdaCoordinator(DataUpdateCoordinator[ZoneState]):
 
     async def async_close(self) -> None:
         """Release subscriptions and connection on unload or failed setup."""
+        if self._closed:
+            return
+        self._closed = True
         self._unsubscribe()
         await self.async_shutdown()
         await self.client.async_close()
+        await release_connection(self.hass, self._port, self.entry.entry_id)
 
 
 type AdaConfigEntry = ConfigEntry[AdaCoordinator]

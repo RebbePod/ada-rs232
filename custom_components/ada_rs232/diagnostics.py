@@ -2,6 +2,7 @@
 
 from typing import Any
 
+from homeassistant.const import CONF_MODEL
 from homeassistant.core import HomeAssistant
 
 from .const import CONF_ADDRESS, MODEL
@@ -14,7 +15,7 @@ async def async_get_config_entry_diagnostics(
     """Return protocol state without exporting the connection endpoint."""
     coordinator = entry.runtime_data
     return {
-        "model": MODEL,
+        "model": entry.data.get(CONF_MODEL, MODEL),
         "address": entry.data[CONF_ADDRESS],
         "options": dict(entry.options),
         "available": coordinator.last_update_success,

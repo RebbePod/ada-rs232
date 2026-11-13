@@ -1,0 +1,149 @@
+query_all:
+  name: Query all amplifiers
+  description: Send GA and return responding addresses and actual output states on this serial connection.
+  fields:
+    entry_id:
+      name: Amplifier
+      description: Bus actions affect the selected amplifier's whole serial connection.
+      required: true
+      selector:
+        config_entry:
+          integration: ada_rs232
+all_off:
+  name: Turn off all amplifiers
+  description: Send SA=00000000 to every amplifier on this connection, including amplifiers without
+    a Home Assistant entry. Hardware voltage triggers can keep outputs on.
+  fields:
+    entry_id:
+      name: Amplifier
+      description: Bus actions affect the selected amplifier's whole serial connection.
+      required: true
+      selector:
+        config_entry:
+          integration: ada_rs232
+set_trigger_states:
+  name: Set trigger states
+  description: Write eight trigger bits to the selected amplifier in one command and report actual
+    outputs.
+  fields:
+    entry_id:
+      name: Amplifier
+      description: Bus actions affect the selected amplifier's whole serial connection.
+      required: true
+      selector:
+        config_entry:
+          integration: ada_rs232
+    mask:
+      name: Control mask
+      required: true
+      selector:
+        text: {}
+      description: Eight bits, leftmost first. For PTM-8100, bits 5 through 8 must be zero.
+      example: '10000000'
+read_setup:
+  name: Read hardware setup
+  description: Physically connect only one amplifier. Disable other entries on this connection. Hold
+    its rear Setup button for more than five seconds and release, then run this action. Returns mappings,
+    firmware, address, and Quick Turn On. Normal controls pause during setup.
+  fields:
+    entry_id:
+      name: Amplifier
+      description: Bus actions affect the selected amplifier's whole serial connection.
+      required: true
+      selector:
+        config_entry:
+          integration: ada_rs232
+    confirm_single_amplifier:
+      name: Only one amplifier is physically connected and in setup mode
+      required: true
+      selector:
+        boolean: {}
+set_trigger_mapping:
+  name: Set trigger mapping
+  description: After Read hardware setup, assign the trigger to the outputs indicated by the mask.
+    Independent zone switches remain unavailable with custom mappings. Enable output binary sensors
+    to monitor actual outputs.
+  fields:
+    entry_id:
+      name: Amplifier
+      description: Bus actions affect the selected amplifier's whole serial connection.
+      required: true
+      selector:
+        config_entry:
+          integration: ada_rs232
+    trigger:
+      name: Trigger
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 8
+          mode: box
+    mask:
+      name: Output mask
+      required: true
+      selector:
+        text: {}
+      description: Eight bits, leftmost first. For PTM-8100, bits 5 through 8 must be zero.
+      example: '10000000'
+set_quick_turn_on:
+  name: Set Quick Turn On
+  description: After Read hardware setup, enable or disable Quick Turn On. Enabling it keeps the
+    power supply running for immediate audio response.
+  fields:
+    entry_id:
+      name: Amplifier
+      description: Bus actions affect the selected amplifier's whole serial connection.
+      required: true
+      selector:
+        config_entry:
+          integration: ada_rs232
+    enabled:
+      name: Quick Turn On
+      required: true
+      selector:
+        boolean: {}
+set_address:
+  name: Set stored amplifier address
+  description: After Read hardware setup, change the address saved in the amplifier. Press Setup
+    once to exit, then run Resume normal operation to reconnect. The confirmed address is saved immediately.
+  fields:
+    entry_id:
+      name: Amplifier
+      description: Bus actions affect the selected amplifier's whole serial connection.
+      required: true
+      selector:
+        config_entry:
+          integration: ada_rs232
+    address:
+      name: New address
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 9
+          mode: box
+restore_trigger_defaults:
+  name: Restore default trigger mappings
+  description: After Read hardware setup, send D to restore one-to-one mappings. This does not reset
+    the stored address or Quick Turn On.
+  fields:
+    entry_id:
+      name: Amplifier
+      description: Bus actions affect the selected amplifier's whole serial connection.
+      required: true
+      selector:
+        config_entry:
+          integration: ada_rs232
+resume:
+  name: Resume normal operation
+  description: Press the rear Setup button once to exit, then run this action. Verifies a normal
+    reply, uses the last confirmed hardware address, and resumes power controls.
+  fields:
+    entry_id:
+      name: Amplifier
+      description: Bus actions affect the selected amplifier's whole serial connection.
+      required: true
+      selector:
+        config_entry:
+          integration: ada_rs232

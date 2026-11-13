@@ -4,6 +4,7 @@ from datetime import timedelta
 from unittest.mock import patch
 
 import pytest
+from ada_rs232 import AdaConnectionError
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import (
     CONF_DEVICE,
@@ -56,7 +57,7 @@ async def test_setup_switches_services_and_unload(hass, mock_client) -> None:
 
 
 async def test_failed_setup_closes_and_retries(hass, mock_client) -> None:
-    mock_client.async_get_state.side_effect = TimeoutError
+    mock_client.async_get_state.side_effect = AdaConnectionError("No response")
     entry = await setup_entry(hass, success=False)
     assert entry.state is ConfigEntryState.SETUP_RETRY
     assert not hass.states.async_all("switch")
@@ -79,7 +80,7 @@ async def test_feedback_disconnect_and_poll_recovery(hass, mock_client) -> None:
 
 async def test_command_failure_is_visible(hass, mock_client) -> None:
     entry = await setup_entry(hass)
-    mock_client.async_set_zone.side_effect = TimeoutError
+    mock_client.async_set_zone.side_effect = AdaConnectionError("No response")
     entity_id = hass.states.async_all("switch")[0].entity_id
     with pytest.raises(HomeAssistantError):
         await hass.services.async_call(
