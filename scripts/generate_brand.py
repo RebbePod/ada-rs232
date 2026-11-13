@@ -1,32 +1,48 @@
-"""Render the project's simple amplifier icon from native drawing primitives."""
+"""Package the supplied ADA artwork for Home Assistant's branding formats."""
 
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageOps
 
 
 def main() -> None:
-    """Generate transparent 256px and 512px icons for Home Assistant and HACS."""
-    output = (
-        Path(__file__).resolve().parents[1]
-        / "custom_components"
-        / "ada_rs232"
-        / "brand"
-    )
+    """Export square marks and full wordmarks in light/dark and 1x/2x sizes."""
+    root = Path(__file__).resolve().parents[1]
+    output = root / "custom_components" / "ada_rs232" / "brand"
     output.mkdir(parents=True, exist_ok=True)
-    image = Image.new("RGBA", (1024, 1024))
-    draw = ImageDraw.Draw(image)
-    draw.rounded_rectangle((48, 224, 976, 800), radius=76, fill="#15283f")
-    draw.rounded_rectangle((80, 256, 944, 768), radius=48, outline="#73c8f5", width=16)
-    for y in (336, 400, 464):
-        draw.rounded_rectangle((160, y, 864, y + 20), radius=10, fill="#73c8f5")
-    for zone in range(8):
-        x = 176 + zone * 96
-        draw.ellipse((x - 22, 592, x + 22, 636), fill="#65e5ae")
-    draw.rounded_rectangle((160, 816, 304, 856), radius=12, fill="#15283f")
-    draw.rounded_rectangle((720, 816, 864, 856), radius=12, fill="#15283f")
-    for size, name in ((256, "icon.png"), (512, "icon@2x.png")):
-        image.resize((size, size), Image.Resampling.LANCZOS).save(output / name)
+    with Image.open(root / "assets" / "ada-logo-source.png") as image:
+        source = image.convert("RGBA")
+    bounds = source.getchannel("A").getbbox()
+    if bounds is None:
+        raise ValueError("The source artwork is empty")
+
+    # The supplied wordmark has a clear gap at x=800..827 separating the ADA
+    # mark from the company name. Retain the original letterforms and alpha.
+    mark = source.crop((bounds[0], bounds[1], 800, bounds[3]))
+    logo = source.crop(bounds)
+
+    for prefix, dark in (("", False), ("dark_", True)):
+        for scale, suffix in ((1, ""), (2, "@2x")):
+            icon_size = 256 * scale
+            icon = Image.new("RGBA", (icon_size, icon_size))
+            fitted = ImageOps.contain(
+                mark, (icon_size, icon_size), Image.Resampling.LANCZOS
+            )
+            icon.alpha_composite(
+                fitted,
+                ((icon_size - fitted.width) // 2, (icon_size - fitted.height) // 2),
+            )
+            height = 256 * scale
+            wordmark = logo.resize(
+                (round(logo.width * height / logo.height), height),
+                Image.Resampling.LANCZOS,
+            )
+            for name, asset in (("icon", icon), ("logo", wordmark)):
+                if dark:
+                    alpha = asset.getchannel("A")
+                    asset = Image.new("RGBA", asset.size, "white")
+                    asset.putalpha(alpha)
+                asset.save(output / f"{prefix}{name}{suffix}.png", optimize=True)
 
 
 if __name__ == "__main__":

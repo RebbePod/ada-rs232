@@ -1,6 +1,9 @@
 # ADA RS-232 for Home Assistant
 
-![ADA RS-232 integration icon](custom_components/ada_rs232/brand/icon.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="custom_components/ada_rs232/brand/dark_logo.png">
+  <img alt="Audio Design Associates" src="custom_components/ada_rs232/brand/logo.png" width="480">
+</picture>
 
 Local control of the **Audio Design Associates PTM-1645** over its PAC RS-232
 connection. This is an installable custom integration, with a UI setup flow
