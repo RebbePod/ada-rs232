@@ -10,16 +10,20 @@
   additional information section.
 -->
 
-Add local power control for the Audio Design Associates PTM-1645, a 16-channel amplifier with eight stereo zones. The integration exposes eight feedback-confirmed zone switches and uses the serial-port selector for local adapters, network serial servers, and ESPHome serial proxies.
+Add local zone-power control for the Audio Design Associates PTM-1645 using its PAC RS-232 connection. The initial user flow selects a native serial port or proxy, scans existing addresses without changing hardware settings, and selects a single available amplifier or offers a dropdown. Each amplifier exposes eight feedback-confirmed zone switches; addressed entries share one serial connection and command queue.
 
-The async [ada-rs232 library](https://github.com/RebbePod/ada-rs232-python), published as [ada-rs232 0.1.0 on PyPI](https://pypi.org/project/ada-rs232/0.1.0/), owns the PAC protocol and serial connection. [Library release and changelog](https://github.com/RebbePod/ada-rs232-python/releases/tag/v0.1.0). Core reads the existing state at setup, polls every 60 seconds, and publishes amplifier feedback after commands. Hardware triggers can override serial control; the documentation explains that limitation.
+The public MIT-licensed [ada-rs232 0.2.0 library](https://pypi.org/project/ada-rs232/0.2.0/) owns the protocol and transport. [Matching source, release, and changelog](https://github.com/RebbePod/ada-rs232-python/releases/tag/v0.2.0). Core reads current state before exposing switches, polls every 60 seconds, handles incoming feedback, and releases shared connections after the last owner unloads. Hardware triggers can override serial control; the documentation explains the feedback and trigger-mapping limitations.
 
-This first submission targets Bronze and includes only the switch platform and initial user config flow. It uses the serial setup patterns established by Denon RS-232. The PAC protocol was tested on a physical PTM-1645 through an ESPHome RS-232 proxy using the custom integration; the new Core wrapper is covered by Home Assistant integration tests.
+This first contribution declares Bronze and includes one switch platform and the initial user flow only. It excludes custom actions, output sensors, diagnostics, options, reconfiguration, and PTM-8100 support. The serial selector and setup style follow Denon RS-232.
+
+The contributor tested zone control and automatic amplifier discovery on a physical PTM-1645 through ESPHome using HACS v0.2.1 and the same published library. The new Core wrapper is tested through Home Assistant interfaces. Multiple physical daisy-chained amplifiers have not been tested.
 
 Validation:
-- 15 Core integration tests pass with 100% coverage in each of the five integration modules, including all config-flow success, error-recovery, and duplicate-entry paths.
-- The complete required prek suite passes, including Ruff, strict mypy, pylint, generated requirements, and hassfest.
-- The dependency's CI passes on Python 3.12, 3.13, and 3.14; both wheel and source distributions are published.
+
+- 22 Core tests and 16 snapshots pass. Config-flow coverage is 53/53 lines; all six modules are at least 96% covered.
+- The complete prescribed prek suite passes, including Ruff, strict mypy, pylint, generated requirements, and full hassfest.
+- Library CI passes on Python 3.12, 3.13, and 3.14; its 54 tests pass, and wheel/source distributions are public.
+- Companion branding assets are prepared and validated; upstream availability remains a merge prerequisite.
 
 ## Type of change
 <!--

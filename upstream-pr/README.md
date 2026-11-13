@@ -1,163 +1,113 @@
-# ADA RS-232 upstream review packet
+# ADA RS-232: Bronze submission review
 
-This prepares the hardware-tested PTM-1645 custom integration for a focused Home
-Assistant Core submission targeting Bronze. It does not change the HACS release.
-The quality tier is proposed for review, not awarded by this preparation.
+This packet prepares a small first Home Assistant Core contribution for the
+Audio Design Associates PTM-1645. It targets **Bronze only**. It does not change
+the released HACS integration or submit anything upstream automatically.
 
-## Read without code diffs
+## Read and review
 
-- [Read the proposed documentation](docs-preview.md): a formatted reading copy,
-  with Home Assistant's shared templates expanded.
-- [Read the Core PR description](core-pr.md).
-- [Read the documentation PR description](docs-pr.md).
-- [Read the branding PR description](brands-pr.md).
+- [Readable documentation preview](docs-preview.md)
+- [Exact Core PR description](core-pr.md)
+- [Exact documentation PR description](docs-pr.md)
+- [Exact branding PR description](brands-pr.md)
+- [Bronze rule audit and validation evidence](quality-review.md)
 
-## Review the changes
+Code and assets:
 
 - [Core integration and tests](https://github.com/home-assistant/core/compare/dev...RebbePod:add-ada-rs232)
-- [Integration documentation](https://github.com/home-assistant/home-assistant.io/compare/next...RebbePod:add-ada-rs232)
-- [Brand images](https://github.com/home-assistant/brands/compare/master...RebbePod:add-ada-rs232)
-- [Protocol library source](https://github.com/RebbePod/ada-rs232-python)
-- [Published library release](https://pypi.org/project/ada-rs232/0.1.0/)
+- [Documentation source](https://github.com/home-assistant/home-assistant.io/compare/next...RebbePod:add-ada-rs232)
+- [ADA branding](https://github.com/home-assistant/brands/compare/master...RebbePod:add-ada-rs232)
+- [Published protocol library 0.2.0](https://pypi.org/project/ada-rs232/0.2.0/)
+- [Matching library source and release](https://github.com/RebbePod/ada-rs232-python/releases/tag/v0.2.0)
 
-The three exact PR descriptions are in [core-pr.md](core-pr.md),
-[docs-pr.md](docs-pr.md), and [brands-pr.md](brands-pr.md). Their original
-repository templates and unchecked alternatives are preserved. Human-review
-attestations remain unchecked until you confirm review. Companion PR references
-will be replaced with the real PR URLs after submission.
+## Reviewed revisions
 
-## What the Core integration does
+- Core: [`a0050a00`](https://github.com/RebbePod/core/tree/a0050a0095b69034f844f9daceaae62c8b3d0147/homeassistant/components/ada_rs232), tested on upstream `cdba0080`.
+- Core tests: [same revision](https://github.com/RebbePod/core/tree/a0050a0095b69034f844f9daceaae62c8b3d0147/tests/components/ada_rs232).
+- Documentation: [`0885102`](https://github.com/RebbePod/home-assistant.io/blob/0885102bf773851961d5afdbd8d61b2accfd0ffc/source/_integrations/ada_rs232.markdown).
+- Brand images: [`75d5a9d`](https://github.com/RebbePod/brands/tree/75d5a9dd3e3513ed44933ab19adee385cfa27a43/core_integrations/ada_rs232).
 
-The user flow selects an existing serial connection and PAC address. It verifies
-the amplifier with a read-only query and rejects duplicate connections. Eight
-zone switches use one coordinator and one library client. The coordinator polls
-every 60 seconds and applies unsolicited feedback. The library serializes a
-fresh read, single-bit modification, complete-mask write, and readback. Hardware
-state remains authoritative. Failed communication makes entities unavailable;
-the next poll reconnects. Config-entry unload and Home Assistant shutdown release
-the subscription and serial connection.
+## First PR scope
 
-The library owns command framing, reply parsing, serialization, and transport
-cleanup. No protocol code is included in Core. The initial Core PR excludes the
-custom integration's options flow, reconfiguration flow, and diagnostics, as
-required by the first-integration guidance. These can be proposed in later PRs.
+- PTM-1645 only, with eight feedback-confirmed stereo-zone switches.
+- Initial UI flow: select a serial port; a read-only scan selects a single
+  available amplifier or offers the discovered addresses in a dropdown.
+- One connection owner and command queue per port, shared by addressed entries
+  and temporary configuration probes.
+- Fixed 60-second polling, incoming feedback, translated communication errors,
+  automatic reconnection, and cleanup on failed setup, unload, and shutdown.
+- A public, typed, async protocol dependency. No protocol parser or local logo
+  files are included in Core; the logos have their own companion change.
 
-The extraction also fixes two library robustness issues: coalesced replies now
-return the latest state, and a failing subscriber cannot prevent feedback or
-transport cleanup. Both have regression tests.
+## How the initial code works
 
-## Validation evidence
+```mermaid
+flowchart LR
+    Setup[Port selection] --> Scan[Read-only address scan]
+    Scan --> Entry[Selected amplifier entry]
+    Entry --> Coordinator[Polling and feedback coordinator]
+    Switches[Eight zone switches] <--> Coordinator
+    Coordinator <--> Client[Addressed library client]
+    Client <--> Bus[Shared serial bus]
+    Scan <--> Bus
+    Bus <--> Amp[PTM-1645]
+```
 
-- Core: 15 integration tests pass against the public PyPI wheel. Each of the five
-  modules, including `config_flow.py`, has 100% line coverage. Sixteen snapshots
-  pass. Tests use real Home Assistant config-entry and service interfaces.
-- Core: the full prescribed prek suite passes: Ruff, codespell, JSON, YAML,
-  Prettier, standard mypy, pylint, generated requirements, hassfest, and strict
-  typing configuration validation.
-- Core metadata: ownership, serial selectors, integration index, requirements,
-  and mypy configuration were generated by the repository scripts. No unrelated
-  ownership records were removed.
-- Library: 27 tests, including a real serialx pseudo-terminal test; strict mypy;
-  GitHub CI passes on Python 3.12, 3.13, and 3.14.
-- PyPI: both wheel and source distribution are published, with MIT metadata and
-  a packaged `py.typed` marker. A clean public installation/import succeeded.
-  The public release workflow builds from the matching Git tag through Trusted
-  Publishing.
-- Documentation: remark and textlint pass. A separate review checked claims,
-  field labels, prerequisites, includes, limitations, and removal against Core.
-- Branding: all eight PNGs pass scoped file-type, size, transparency, pairing,
-  and distinct-content checks. Official upstream branding CI awaits submission.
-  A broad fork Actions setting change was rejected by automatic approval review;
-  no such security-setting change was made.
+Each amplifier has its own entry and switches. Entries and temporary setup
+scans use the same bus when their port matches. Releasing one entry keeps the
+bus available to the others; the last owner closes it.
 
-The full development bootstrap was attempted on this Mac and hit an unrelated
-DTLSSocket/autoconf build failure. The required Core runtime, pinned validators,
-and test fixtures were then installed explicitly; the final complete hook suite
-passes. Camera's optional native TurboJPEG acceleration is unavailable locally
-and does not fail the integration checks.
+The contributor confirmed that zone control and automatic amplifier discovery
+work on a physical PTM-1645 through ESPHome with HACS v0.2.1. The new Core wrapper
+is covered by Home Assistant tests. Multiple physical daisy-chained amplifiers
+have not been tested; the shared-connection behavior is tested with the library
+boundary mocked.
 
-The contributor tested the PAC protocol on a physical PTM-1645 through an ESPHome
-RS-232 proxy using the HACS integration. The new Core wrapper has been exercised
-through Home Assistant tests; no claim is made that it has shipped in Core.
+## Kept for later PRs
 
-## Submission steps after your review
+Home Assistant's first-integration guide requires one platform and excludes
+custom actions, diagnostics, options, and reconfiguration from the first PR.
+Accordingly, this submission excludes:
 
-1. Confirm that you have reviewed the code, images, documentation, and PR text,
-   understand the implementation, and approve upstream submission.
-2. Open the brands and documentation PRs using the prepared templates.
-3. Replace the companion placeholders in the Core description with their actual
-   URLs. Link the brands PR from the quality-scale comment if useful.
-4. Open the Core PR against `dev`; documentation targets `next`, brands targets
-   `master`. Cross-link all three PRs.
-5. Check upstream CI and sign the Contributor License Agreement if prompted.
-   Respond to maintainers yourself with explanations you understand.
+- Output binary sensors and custom trigger mappings.
+- Whole-chain/custom mask actions and hardware setup actions, including Quick
+  Turn On, stored address changes, and trigger-default restoration.
+- Diagnostics and reconfiguration.
+- PTM-8100 model selection and four-zone support.
 
-No upstream issues, PRs, or comments were opened automatically during preparation.
+These capabilities remain in the HACS integration. A later Core actions change
+must register its actions in `async_setup`, as required by the `action-setup`
+rule, rather than copying HACS's entry-lifetime registration. User-configurable
+polling will not be carried into Core. Hardware setup and PTM-8100 features need
+additional physical validation before they are presented as hardware-tested.
 
-## Relevant requirements
+## Readiness
 
-- [New integration scope](https://contributors.home-assistant.io/core/integrations/create/)
-- [Development checklist](https://contributors.home-assistant.io/core/development/checklist/)
-- [Bronze quality rules](https://contributors.home-assistant.io/core/quality-scale/rules/)
-- [Human review and AI policy](https://contributors.home-assistant.io/start/ai-policy/)
+The Core tests and prescribed repository checks are recorded in the
+[quality review](quality-review.md). The declaration stays Bronze; the required
+scorecard retains every rule key, with higher-tier work left for later.
 
-Core's `AGENTS.md` states: “a human must review, understand, and be able to explain
-every change before it is submitted.” Its PR template asks you to attest that
-you understand the code. The request for final review follows that repository
-requirement.
+All eight brand assets are prepared and locally validated. **Their upstream
+availability remains pending** the companion brands PR and its merge. Bronze is
+proposed for review, not awarded. The scorecard's brands entry records that merge
+prerequisite explicitly.
 
-## Review update and expanded HACS beta
+Original PR templates and unchecked alternatives are preserved. Contributor
+understanding/review attestations remain unchecked until you personally review
+and understand the changes. Companion PR placeholders will be replaced with
+actual links after approved submission.
 
-On 2026-11-12, the prepared Core integration and library were reviewed again
-against Core's `AGENTS.md`, `ha-integration-knowledge`, the current quality rules,
-and the supplied PAC manual. The unchanged Core proposal passes its 15 tests
-and 16 snapshots with 100% line coverage across all five modules. The complete
-prescribed prek suite passes, including mypy, pylint, hassfest, and generated
-metadata checks. This is an AI-assisted code review; it does not replace the
-contributor's personal review and understanding required before submission.
+## After your review
 
-The separate `expand-pac-protocol` branches add all remaining documented serial
-commands to the library and HACS integration. They are excluded from the initial
-Core proposal and its pinned `ada-rs232==0.1.0` dependency. The beta adds a shared
-transport per port, addressed clients, GA queries, atomic masks, SA all-off,
-setup screen readback, verified T/Q/A/D setup operations, and explicit resumption.
-PTM-8100 exposes four outputs; PTM-1645 exposes eight.
+1. Confirm you have reviewed and understand the code, documentation, artwork,
+   and exact PR descriptions, and approve submission.
+2. Open the brands and documentation PRs, then the Core PR, and cross-link them.
+3. Check upstream CI and complete the Contributor License Agreement if asked.
+4. Respond to maintainer questions yourself with explanations you understand.
 
-Review findings fixed in the beta include retaining the original port for unload
-cleanup after reconfiguration, retaining the connection while another entry owns
-it, waiting for late address-9 broadcast replies, discarding missing-address
-cache entries, reading Q before toggling, accepting fragmented setup screens,
-and persisting uncertain/custom mapping status before settings writes. Custom
-mappings disable independent zone switches; optional output binary sensors
-report actual output states. Setup actions require administrator access, an
-explicit single-amplifier confirmation, and complete setup-screen readback.
+[Core's AGENTS.md](https://github.com/home-assistant/core/blob/dev/AGENTS.md)
+requires that "a human must review, understand, and be able to explain every
+change before it is submitted." This is also required by the
+[Home Assistant AI policy](https://contributors.home-assistant.io/start/ai-policy/).
 
-Validation for the expansion: 54 library tests (97% line coverage), strict mypy,
-Ruff, and wheel/source builds pass. Library CI passes on Python 3.12, 3.13, and
-3.14. The HACS integration passes 41 tests (99% line coverage), including all
-custom actions, permissions, shared ownership, mapping uncertainty, stable entity
-IDs after address changes, and cleanup after port changes. Full scoped hassfest
-passes against the unmodified upstream base. The prepared Core checkout itself
-contains the older proposed library pin, so it is not used as the HACS dependency
-compatibility baseline.
-
-The setup parser has been checked against the printed manual, not a real setup
-terminal capture. New setup, broadcast, daisy-chain, and PTM-8100 paths still need
-hardware testing. No upstream PRs, issues, or comments have been submitted.
-
-Version 0.2.0 publishes the same expanded runtime as a regular HACS release,
-using the regular ada-rs232 0.2.0 package. Hardware-verification limitations
-remain as described above. The initial Core proposal is unchanged.
-
-Version 0.2.1 removes manual address entry from the HACS connection form. A
-read-only GA scan selects a single available amplifier automatically, or offers
-a dropdown of unconfigured responding addresses. Reconfiguration preserves
-existing entity IDs and custom device names. No hardware settings are changed
-by discovery. The initial Core proposal remains unchanged.
-
-Branding was verified against all eight shipped images through Home Assistant's
-authenticated brands API. The reported screenshot showed Version 0.1.0 with a
-generic placeholder while showing newer dialog text, suggesting cached or mixed
-integration metadata. The documentation now calls for a full Home Assistant
-restart and browser refresh after updating. No arbitrary replacement artwork or
-frontend workaround was added.
+No upstream PRs, issues, or comments have been opened during preparation.

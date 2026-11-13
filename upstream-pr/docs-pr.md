@@ -13,7 +13,7 @@
     additional information section.
 -->
 
-Document the new ADA RS-232 integration for the Audio Design Associates PTM-1645. The page covers supported hardware, serial prerequisites, UI setup, eight zone power switches, feedback and polling, hardware-trigger limitations, and removal.
+Document the new ADA RS-232 integration for the Audio Design Associates PTM-1645. The page covers serial prerequisites, read-only automatic address selection, shared connections, eight zone switches per amplifier, hardware feedback, fixed polling, limitations, and removal. It documents only the initial switch-platform scope and distinguishes confirmed PTM-1645 hardware tests from unverified physical daisy chains.
 
 ## Type of change
 <!--
