@@ -1,0 +1,34 @@
+{
+  "title": "ADA RS-232",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect your ADA PTM-1645",
+        "description": "Select a local RS-232 port or ESPHome serial proxy. The amplifier must use its default one-to-one trigger mapping. Setup reads the amplifier without changing any zones.",
+        "data": {"device": "Serial port", "address": "Amplifier address"},
+        "data_description": {"address": "Existing PAC address, from 1 to 9. This does not change the amplifier's address."}
+      },
+      "reconfigure": {
+        "title": "Change the ADA connection",
+        "description": "The integration will reconnect using these settings. Zone entity IDs are preserved. If the amplifier cannot be reached, setup will retry automatically.",
+        "data": {"device": "Serial port", "address": "Amplifier address"}
+      }
+    },
+    "error": {"cannot_connect": "No valid amplifier response. Check the port, PAC address, RS-232 wiring and that the old ESPHome scripts are removed. The connection uses 19200 baud, 8N1, with no flow control."},
+    "abort": {
+      "already_configured": "This serial port is already configured. Only one amplifier per connection is supported.",
+      "no_changes": "The connection settings have not changed.",
+      "reconfigure_successful": "Connection settings updated."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "ADA communication settings",
+        "data": {"poll_interval": "Poll interval (seconds)", "response_timeout": "Response timeout (seconds)"}
+      }
+    }
+  },
+  "entity": {"switch": {"zone": {"name": "Zone {zone}"}}},
+  "exceptions": {"command_failed": {"message": "The amplifier did not confirm the command. Check the serial connection and try again."}}
+}

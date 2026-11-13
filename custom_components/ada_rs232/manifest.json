@@ -1,0 +1,14 @@
+{
+  "domain": "ada_rs232",
+  "name": "ADA RS-232",
+  "codeowners": ["@RebbePod"],
+  "config_flow": true,
+  "connectivity": ["serial"],
+  "dependencies": ["usb"],
+  "documentation": "https://github.com/RebbePod/ada-rs232",
+  "integration_type": "hub",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/RebbePod/ada-rs232/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}
