@@ -4,6 +4,13 @@ This packet prepares a small first Home Assistant Core contribution for the
 Audio Design Associates PTM-1645. It targets **Bronze only**. It does not change
 the released HACS integration or submit anything upstream automatically.
 
+## Full Marketplace package
+
+Stable [v0.2.2](https://github.com/RebbePod/ada-rs232/releases/tag/v0.2.2)
+contains the complete serial feature set. Its catalog submission is prepared
+separately: [review the Marketplace changes and exact PR text](marketplace-review.md).
+No catalog PR has been opened; the stable package is already installable by link.
+
 ## Read and review
 
 - [Readable documentation preview](docs-preview.md)
