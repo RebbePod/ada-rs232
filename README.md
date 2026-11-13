@@ -10,11 +10,15 @@ connection. This is an installable custom integration, with a UI setup flow
 modeled on [Denon RS-232](https://www.home-assistant.io/integrations/denon_rs232/).
 It requires **Home Assistant 2026.11.0 or newer**.
 
-## Expanded serial support (0.2.0)
+[![Open ADA RS-232 in your Home Assistant Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=RebbePod&repository=ada-rs232&category=integration)
 
-This release adds the remaining documented PAC serial commands. The new setup
-and daisy-chain paths have emulator coverage and still need hardware testing.
-The existing single-amplifier zone controls were tested on a physical PTM-1645.
+## Full serial package
+
+The stable release includes the documented PAC serial commands, automatic
+amplifier discovery, and hardware setup actions. Zone switches and automatic
+discovery were tested on a physical PTM-1645 through ESPHome. Setup actions,
+daisy chains, and PTM-8100 support have automated coverage and still need hardware
+testing.
 
 ## Supported functionality
 
@@ -59,11 +63,12 @@ queue. Duplicate port/address pairs are blocked. A failed shared transport makes
 its amplifiers unavailable until the next successful poll. Response timeout uses
 the largest timeout requested by entries sharing the connection.
 
-## Install with HACS
+## Install from the Marketplace
 
-1. In **HACS**, open the **⋮** menu and choose **Custom repositories**.
-2. Enter **https://github.com/RebbePod/ada-rs232** and select type **Integration**.
-3. Add the repository, find **ADA RS-232**, and download **v0.2.1** or newer.
+1. Open **Settings → Marketplace → Add from link**, or use the badge above.
+2. Enter **https://github.com/RebbePod/ada-rs232** and select **Add**. Connect
+   GitHub if prompted. If asked for a type, select **Integration**.
+3. Open **ADA RS-232** and install the latest stable release, **v0.2.2** or newer.
 4. Restart Home Assistant.
 5. Open **Settings → Devices & services → Add integration → ADA RS-232**.
 6. Select your serial port and amplifier model. Setup discovers existing PAC
@@ -71,24 +76,29 @@ the largest timeout requested by entries sharing the connection.
    from the discovered list. The scan does not change hardware settings.
 
 For your existing ESPHome connection, follow the migration steps below before
-adding the integration. HACS installs the Home Assistant files; the serial proxy
-firmware is configured separately on the ESP32.
+adding the integration. The Marketplace installs the Home Assistant files; the
+serial proxy firmware is configured separately on the ESP32.
 
-See [HACS custom repository instructions](https://www.hacs.xyz/docs/faq/custom_repositories/).
+See the official [Marketplace custom repository instructions](https://www.home-assistant.io/integrations/marketplace/#custom-repositories).
 This repository is available as a custom repository; it is not in the default
-HACS catalog or Home Assistant Core.
+Marketplace catalog or Home Assistant Core. The full package remains available
+here while a smaller, Bronze-scoped Core integration is prepared separately.
+
+Existing HACS installations carry over to the Marketplace in Home Assistant
+2026.11. The package still uses `hacs.json` and the HACS validation action because
+the Marketplace uses the same repository format and catalog.
 
 ### Logo or version still looks old
 
 The release includes the supplied ADA artwork in `brand/`, including separate
 light and dark icons and logos. Home Assistant serves these local images through
-its brands API. After updating in HACS, perform a full **Home Assistant restart**;
+its brands API. After updating in the Marketplace, perform a full **Home Assistant restart**;
 reloading the integration alone can leave cached integration metadata. Reload
 the browser or Companion app afterward. If necessary, use a hard refresh of the
-browser. The integration page should show the installed version **0.2.1** or newer.
+browser. The integration page should show the installed version **0.2.2** or newer.
 
 If the page still reports **0.1.0** or shows a generic amplifier icon, first check
-HACS has downloaded the current release. Verify that
+the Marketplace has installed the current release. Verify that
 `/config/custom_components/ada_rs232/brand/` contains the PNG artwork. A new API
 test verifies every shipped light, dark, and high-resolution image is served
 by Home Assistant instead of a placeholder.
@@ -215,9 +225,9 @@ four output sensors and four zone switches.
 ## Validation and troubleshooting
 
 This implementation has automated protocol and Home Assistant lifecycle tests.
-The earlier single-amplifier controls worked on the maintainer's PTM-1645
-through ESPHome. The new commands, setup screen parser, daisy chains, and
-PTM-8100 handling still need verification on real equipment.
+Zone switches and automatic amplifier discovery worked on the maintainer's
+PTM-1645 through ESPHome. The other commands, setup screen parser, daisy chains,
+and PTM-8100 handling still need verification on real equipment.
 After installation, verify initial state, turn one unused zone on/off, and check
 that another active zone is preserved. Then disconnect/reconnect the bridge and
 check that entities recover after a poll.

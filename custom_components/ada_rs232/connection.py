@@ -43,5 +43,5 @@ async def release_connection(hass: HomeAssistant, port: str, entry_id: str) -> N
         shared.bus.timeout = max(shared.owners.values())
         return
     await shared.bus.async_close()
-    if not shared.owners:
+    if not shared.owners and registry.get(port) is shared:
         registry.pop(port, None)
